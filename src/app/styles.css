@@ -1,0 +1,32 @@
+/* styles.css */
+@keyframes float {
+    0% {
+      transform: translateY(0) translateX(0) rotate(0);
+    }
+    50% {
+      transform: translateY(-100px) translateX(50px) rotate(180deg);
+    }
+    100% {
+      transform: translateY(0) translateX(0) rotate(360deg);
+    }
+  }
+  
+  @keyframes heartbeat {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+  
+  .heart-floating {
+    position: absolute;
+    font-size: 2rem;
+    color: #ff4d6d;
+    animation: float 10s infinite ease-in-out;
+  }
+  
+  .animate-heartbeat {
+    animation: heartbeat 1.5s infinite;
+  }

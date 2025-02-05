@@ -1,18 +1,25 @@
-import type { Config } from "tailwindcss";
-
-export default {
+// tailwind.config.js
+module.exports = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    './src/app/**/*.{js,ts,jsx,tsx}',
+    './src/components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        'valentine-pink': '#ff4d6d',
+        'valentine-light-pink': '#ff8fa3',
+        'valentine-red': '#ff1a40',
+        'valentine-white': '#fff0f3',
+      },
+      fontFamily: {
+        dancing: ['Dancing Script', 'cursive'],
+        roboto: ['Roboto', 'sans-serif'],
+      },
+      animation: {
+        heartbeat: 'heartbeat 1.5s infinite',
       },
     },
   },
   plugins: [],
-} satisfies Config;
+};
