@@ -10,7 +10,7 @@ export default function Success() {
   const id  = params.id
 
   // Generate the shareable link
-  const shareableLink = `http://localhost:3000/decide/${id}`;
+  const shareableLink = `https://crushu-front.onrender.com/decide/${id}`;
 
   // Copy link to clipboard
   const copyToClipboard = () => {
