@@ -1,19 +1,19 @@
-"use client"
-// pages/ask.tsx
+"use client";
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FaHeart, FaArrowLeft } from 'react-icons/fa';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { useState } from 'react';
 import * as yup from 'yup';
 
 // Define validation schema with Yup
 const schema = yup.object().shape({
-  crushName: yup.string().required('Crush’s name is required'),
-  userEmail: yup.string().email('Invalid email').required('Your email is required'),
-  yesResponse: yup.string().required('Please fill out what happens if they say YES'),
-  noResponse: yup.string().required('Please fill out what happens if they say NO'),
+  crushName: yup.string().required("Crush’s name is required"),
+  userEmail: yup.string().email("Invalid email").required("Your email is required"),
+  yesResponse: yup.string().required("Please fill out what happens if they say YES"),
+  noResponse: yup.string().required("Please fill out what happens if they say NO"),
 });
 
 type FormInputs = {
@@ -25,6 +25,7 @@ type FormInputs = {
 
 export default function Ask() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false); // Added loading state
 
   const {
     register,
@@ -34,30 +35,29 @@ export default function Ask() {
     resolver: yupResolver(schema),
   });
 
+  const onSubmit: SubmitHandler<FormInputs> = async (data) => {
+    setLoading(true); // Set loading to true when submitting
+    try {
+      const response = await fetch(`https://crushu-back.onrender.com/api/crush/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
 
-  // pages/ask.tsx
-const onSubmit: SubmitHandler<FormInputs> = async (data) => {
-  try {
-    const response = await fetch(`https://crushu-back.onrender.com/api/crush/submit`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+      const result = await response.json();
 
-    const result = await response.json();
-
-    if (result.success) {
-      debugger
-      // Redirect to the success page with the form ID
-      router.push(`/respond/${result.data._id}`);
-    } else {
-      alert('Failed to submit form. Please try again.');
+      if (result.success) {
+        router.push(`/respond/${result.data._id}`);
+      } else {
+        alert("Failed to submit form. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setLoading(false); // Reset loading state after request completes
     }
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    alert('An error occurred. Please try again.');
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-valentine-pink to-valentine-light-pink flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -84,12 +84,10 @@ const onSubmit: SubmitHandler<FormInputs> = async (data) => {
             <input
               type="text"
               placeholder="Your crush's name"
-              {...register('crushName')}
+              {...register("crushName")}
               className="w-full p-2 rounded-lg border border-valentine-red focus:outline-none focus:ring-2 focus:ring-valentine-red"
             />
-            {errors.crushName && (
-              <p className="text-valentine-red text-sm mt-1">{errors.crushName.message}</p>
-            )}
+            {errors.crushName && <p className="text-valentine-red text-sm mt-1">{errors.crushName.message}</p>}
           </div>
 
           {/* User Email */}
@@ -97,45 +95,40 @@ const onSubmit: SubmitHandler<FormInputs> = async (data) => {
             <input
               type="email"
               placeholder="Your email (to notify you)"
-              {...register('userEmail')}
+              {...register("userEmail")}
               className="w-full p-2 rounded-lg border border-valentine-red focus:outline-none focus:ring-2 focus:ring-valentine-red"
             />
-            {errors.userEmail && (
-              <p className="text-valentine-red text-sm mt-1">{errors.userEmail.message}</p>
-            )}
+            {errors.userEmail && <p className="text-valentine-red text-sm mt-1">{errors.userEmail.message}</p>}
           </div>
 
           {/* What if they say YES? */}
           <div>
             <textarea
               placeholder="What if they say YES? (e.g., 'Let’s go on a date!')"
-              {...register('yesResponse')}
+              {...register("yesResponse")}
               className="w-full p-2 rounded-lg border border-valentine-red focus:outline-none focus:ring-2 focus:ring-valentine-red"
             />
-            {errors.yesResponse && (
-              <p className="text-valentine-red text-sm mt-1">{errors.yesResponse.message}</p>
-            )}
+            {errors.yesResponse && <p className="text-valentine-red text-sm mt-1">{errors.yesResponse.message}</p>}
           </div>
 
           {/* What if they say NO? */}
           <div>
             <textarea
               placeholder="What if they say NO? (e.g., 'We can still be friends!')"
-              {...register('noResponse')}
+              {...register("noResponse")}
               className="w-full p-2 rounded-lg border border-valentine-red focus:outline-none focus:ring-2 focus:ring-valentine-red"
             />
-            {errors.noResponse && (
-              <p className="text-valentine-red text-sm mt-1">{errors.noResponse.message}</p>
-            )}
+            {errors.noResponse && <p className="text-valentine-red text-sm mt-1">{errors.noResponse.message}</p>}
           </div>
 
           {/* Submit Button */}
           <div className="flex justify-between items-center">
             <button
               type="submit"
-              className="bg-valentine-white text-valentine-pink px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-transform"
+              className="bg-valentine-white text-valentine-pink px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading} // Disable button while loading
             >
-              Send to Crush <FaHeart className="inline-block ml-2" />
+              {loading ? "Submitting..." : "Send to Crush"} <FaHeart className="inline-block ml-2" />
             </button>
           </div>
         </form>
