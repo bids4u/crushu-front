@@ -70,6 +70,7 @@ export default function Respond() {
       toast.warning("Are you sure? 🤔");
       setSpeed(500); // Increase speed
     } else if (noClickCount === 2) {
+      toast.warning("This is the last chance 💔");
       setSpeed(200); // Move even faster
     } else {
       toast.error("Oh no! 💔");
