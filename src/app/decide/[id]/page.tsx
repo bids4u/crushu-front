@@ -109,13 +109,11 @@ export default function Respond() {
   };
 
   const handleResponse = async (response: "yes" | "no") => {
-    if (response === "no") return;
 
     setResponse(response);
     setButtonsVisible(false);
     setMoving(false);
 
-    if (response === "yes") {
       confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
       try {
@@ -127,6 +125,7 @@ export default function Respond() {
             body: JSON.stringify({
               userEmail: formData?.userEmail,
               crushName: formData?.crushName,
+              response: response
             }),
           }
         );
@@ -141,7 +140,6 @@ export default function Respond() {
       } catch (error) {
         toast.error("Error sending email: " + error);
       }
-    }
 
     toast.info(`You said ${response === "yes" ? "YES ❤️" : "NO 💔"}!`);
   };
