@@ -1,28 +1,28 @@
-"use client"; // Still needed for interactivity
+"use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation"; // Use `next/navigation` instead of `next/router`
+import { useParams } from "next/navigation";
 import Head from "next/head";
 import confetti from "canvas-confetti";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// toast.configure(); // Initialize toast notifications
-
 export default function Respond() {
   const params = useParams();
   const id = params.id;
   const [response, setResponse] = useState<"yes" | "no" | null>(null);
-  const [noButtonStyle, setNoButtonStyle] = useState({});
   const [buttonsVisible, setButtonsVisible] = useState(true);
+  const [noClickCount, setNoClickCount] = useState(0);
   const [formData, setFormData] = useState<{
     crushName: string;
     userEmail: string;
     yesResponse: string;
     noResponse: string;
   } | null>(null);
+  const [noButtonStyle, setNoButtonStyle] = useState({});
+  const [moving, setMoving] = useState(false);
+  const [speed, setSpeed] = useState(1000); // Initial movement speed
 
-  // Fetch form data by ID
   useEffect(() => {
     const fetchFormData = async () => {
       try {
@@ -46,33 +46,52 @@ export default function Respond() {
     }
   }, [id]);
 
-  // Move the "No" button randomly with a delay
-  const moveNoButton = () => {
-    setTimeout(() => {
-      const newPosition = {
-        left: `${Math.random() * 80}%`,
-        top: `${Math.random() * 80}%`,
-      };
-      setNoButtonStyle(newPosition);
-    }, 100);
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (moving) {
+      interval = setInterval(() => {
+        setNoButtonStyle({
+          left: `${Math.random() * 85}%`,
+          top: `${Math.random() * 85}%`,
+          transition: `all ${speed / 1000}s ease-in-out`,
+        });
+      }, speed);
+    }
+
+    return () => clearInterval(interval);
+  }, [moving, speed]);
+
+  const handleNoClick = () => {
+    if (noClickCount === 0) {
+      toast.warning("Pleass think and try again 🤔");
+      setMoving(true); // Start moving on first click
+    } else if (noClickCount === 1) {
+      toast.warning("Are you sure? 🤔");
+      setSpeed(500); // Increase speed
+    } else if (noClickCount === 2) {
+      setSpeed(200); // Move even faster
+    } else {
+      toast.error("Oh no! 💔");
+      setResponse("no");
+      setButtonsVisible(false);
+      setMoving(false);
+    }
+
+    setNoClickCount((prev) => prev + 1);
   };
 
-  // Handle response submission
   const handleResponse = async (response: "yes" | "no") => {
+    if (response === "no") return;
+
     setResponse(response);
-    setButtonsVisible(false); // Hide buttons after response
+    setButtonsVisible(false);
+    setMoving(false);
 
-    // Trigger confetti for "Yes"
     if (response === "yes") {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
 
-      // Send email to the user
       try {
-        console.log(formData?.crushName, formData?.userEmail);
         const emailResponse = await fetch(
           `https://crushu-back.onrender.com/api/crush/send-email`,
           {
@@ -104,19 +123,16 @@ export default function Respond() {
     <div className="min-h-screen bg-gradient-to-br from-valentine-pink to-valentine-light-pink flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <Head>
         <title>Respond 💌 - Crushu</title>
-        <meta
-          name="description"
-          content="Respond to your crush’s question on Crushu."
-        />
+        <meta name="description" content="Respond to your crush’s question on Crushu." />
       </Head>
-      {/* Toast Notification */}
+
       <ToastContainer />
+
       <main className="text-center">
         <h1 className="text-4xl font-dancing text-valentine-white mb-8">
           Will you be my Valentine, {formData?.crushName}? 💘
         </h1>
 
-        {/* Friendly "Yes" Button */}
         {buttonsVisible && (
           <button
             onClick={() => handleResponse("yes")}
@@ -126,20 +142,16 @@ export default function Respond() {
           </button>
         )}
 
-        {/* Evil "No" Button */}
         {buttonsVisible && (
           <button
-            onClick={() => handleResponse("no")}
-            onMouseEnter={moveNoButton} // Move on hover (desktop)
-            onTouchStart={moveNoButton} // Move on touch (mobile)
+            onClick={handleNoClick}
             style={noButtonStyle}
-            className="bg-valentine-red text-valentine-white px-6 py-3 rounded-lg shadow-lg absolute transition-all transform-gpu"
+            className={`bg-valentine-red text-valentine-white px-6 py-3 rounded-lg shadow-lg absolute transition-all transform-gpu`}
           >
             No 😢
           </button>
         )}
 
-        {/* Display the response based on user's choice */}
         {response && formData && (
           <div className="mt-8">
             <p className="text-2xl font-dancing text-valentine-white">
