@@ -4,6 +4,8 @@
 import { useParams } from 'next/navigation'; // Use `next/navigation` instead of `next/router`
 import Head from 'next/head';
 import { FaCopy } from 'react-icons/fa';
+import { ToastContainer,toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Success() {
   const params = useParams();
@@ -15,7 +17,7 @@ export default function Success() {
   // Copy link to clipboard
   const copyToClipboard = () => {
     navigator.clipboard.writeText(shareableLink);
-    alert('Link copied to clipboard!');
+    toast('Link copied to clipboard!');
   };
 
   return (
@@ -24,7 +26,8 @@ export default function Success() {
         <title>Success! 💘 - Crushu</title>
         <meta name="description" content="Your crush has been notified. Share the link and wait for their response!" />
       </Head>
-
+   {/* Toast Notification */}
+   <ToastContainer />
       <main className="text-center">
         <h1 className="text-4xl font-dancing text-valentine-white mb-8">
           Success! 💘

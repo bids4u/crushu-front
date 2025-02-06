@@ -1,10 +1,13 @@
-// src/app/respond/[id]/page.tsx
 "use client"; // Still needed for interactivity
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation"; // Use `next/navigation` instead of `next/router`
 import Head from "next/head";
 import confetti from "canvas-confetti";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// toast.configure(); // Initialize toast notifications
 
 export default function Respond() {
   const params = useParams();
@@ -23,11 +26,12 @@ export default function Respond() {
   useEffect(() => {
     const fetchFormData = async () => {
       try {
-        const response = await fetch(`https://crushu-back.onrender.com/api/crush/${id}`);
+        const response = await fetch(
+          `https://crushu-back.onrender.com/api/crush/${id}`
+        );
         const result = await response.json();
 
         if (result.success) {
-          // Set the form data to state
           setFormData(result.data);
         } else {
           console.error("Failed to fetch form data:", result.message);
@@ -50,11 +54,11 @@ export default function Respond() {
         top: `${Math.random() * 80}%`,
       };
       setNoButtonStyle(newPosition);
-    }, 100); // 100ms delay
+    }, 100);
   };
 
   // Handle response submission
-  const handleResponse = async(response: "yes" | "no") => {
+  const handleResponse = async (response: "yes" | "no") => {
     setResponse(response);
     setButtonsVisible(false); // Hide buttons after response
 
@@ -65,9 +69,10 @@ export default function Respond() {
         spread: 70,
         origin: { y: 0.6 },
       });
+
       // Send email to the user
       try {
-        console.log(formData?.crushName,formData?.userEmail)
+        console.log(formData?.crushName, formData?.userEmail);
         const emailResponse = await fetch(
           `https://crushu-back.onrender.com/api/crush/send-email`,
           {
@@ -83,16 +88,16 @@ export default function Respond() {
         const result = await emailResponse.json();
 
         if (result.success) {
-          console.log("Email sent successfully!");
+          toast.success("Email sent successfully! 📧");
         } else {
-          console.error("Failed to send email:", result.message);
+          toast.error("Failed to send email: " + result.message);
         }
       } catch (error) {
-        console.error("Error sending email:", error);
+        toast.error("Error sending email: " + error);
       }
     }
 
-    alert(`You said ${response === "yes" ? "YES" : "NO"}! 🌹`);
+    toast.info(`You said ${response === "yes" ? "YES ❤️" : "NO 💔"}!`);
   };
 
   return (
@@ -104,7 +109,8 @@ export default function Respond() {
           content="Respond to your crush’s question on Crushu."
         />
       </Head>
-
+      {/* Toast Notification */}
+      <ToastContainer />
       <main className="text-center">
         <h1 className="text-4xl font-dancing text-valentine-white mb-8">
           Will you be my Valentine, {formData?.crushName}? 💘

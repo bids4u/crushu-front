@@ -1,12 +1,14 @@
 "use client";
-import Head from 'next/head';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FaHeart, FaArrowLeft } from 'react-icons/fa';
-import { useForm, SubmitHandler } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { useState } from 'react';
-import * as yup from 'yup';
+import Head from "next/head";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FaHeart, FaArrowLeft } from "react-icons/fa";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Define validation schema with Yup
 const schema = yup.object().shape({
@@ -25,7 +27,7 @@ type FormInputs = {
 
 export default function Ask() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false); // Added loading state
+  const [submitting, setSubmitting] = useState(false);
 
   const {
     register,
@@ -36,7 +38,8 @@ export default function Ask() {
   });
 
   const onSubmit: SubmitHandler<FormInputs> = async (data) => {
-    setLoading(true); // Set loading to true when submitting
+    setSubmitting(true); // Disable button while submitting
+
     try {
       const response = await fetch(`https://crushu-back.onrender.com/api/crush/submit`, {
         method: "POST",
@@ -45,17 +48,17 @@ export default function Ask() {
       });
 
       const result = await response.json();
-
       if (result.success) {
-        router.push(`/respond/${result.data._id}`);
+        toast.success("Form submitted successfully!", { autoClose: 3000 });
+        setTimeout(() => router.push(`/respond/${result.data._id}`), 2000);
       } else {
-        alert("Failed to submit form. Please try again.");
+        toast.error("Failed to submit form. Please try again.");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
     } finally {
-      setLoading(false); // Reset loading state after request completes
+      setSubmitting(false); // Re-enable button
     }
   };
 
@@ -65,6 +68,9 @@ export default function Ask() {
         <title>Ask Your Crush 💌 - Crushu</title>
         <meta name="description" content="Ask your crush out with Crushu. No escape from saying yes!" />
       </Head>
+
+      {/* Toast Notification */}
+      <ToastContainer />
 
       {/* Back Button */}
       <Link href="/" passHref>
@@ -87,7 +93,9 @@ export default function Ask() {
               {...register("crushName")}
               className="w-full p-2 rounded-lg border border-valentine-red focus:outline-none focus:ring-2 focus:ring-valentine-red"
             />
-            {errors.crushName && <p className="text-valentine-red text-sm mt-1">{errors.crushName.message}</p>}
+            {errors.crushName && (
+              <p className="text-valentine-red text-sm mt-1">{errors.crushName.message}</p>
+            )}
           </div>
 
           {/* User Email */}
@@ -98,7 +106,9 @@ export default function Ask() {
               {...register("userEmail")}
               className="w-full p-2 rounded-lg border border-valentine-red focus:outline-none focus:ring-2 focus:ring-valentine-red"
             />
-            {errors.userEmail && <p className="text-valentine-red text-sm mt-1">{errors.userEmail.message}</p>}
+            {errors.userEmail && (
+              <p className="text-valentine-red text-sm mt-1">{errors.userEmail.message}</p>
+            )}
           </div>
 
           {/* What if they say YES? */}
@@ -108,7 +118,9 @@ export default function Ask() {
               {...register("yesResponse")}
               className="w-full p-2 rounded-lg border border-valentine-red focus:outline-none focus:ring-2 focus:ring-valentine-red"
             />
-            {errors.yesResponse && <p className="text-valentine-red text-sm mt-1">{errors.yesResponse.message}</p>}
+            {errors.yesResponse && (
+              <p className="text-valentine-red text-sm mt-1">{errors.yesResponse.message}</p>
+            )}
           </div>
 
           {/* What if they say NO? */}
@@ -118,17 +130,23 @@ export default function Ask() {
               {...register("noResponse")}
               className="w-full p-2 rounded-lg border border-valentine-red focus:outline-none focus:ring-2 focus:ring-valentine-red"
             />
-            {errors.noResponse && <p className="text-valentine-red text-sm mt-1">{errors.noResponse.message}</p>}
+            {errors.noResponse && (
+              <p className="text-valentine-red text-sm mt-1">{errors.noResponse.message}</p>
+            )}
           </div>
 
           {/* Submit Button */}
           <div className="flex justify-between items-center">
             <button
               type="submit"
-              className="bg-valentine-white text-valentine-pink px-4 py-2 rounded-lg shadow-lg hover:scale-105 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading} // Disable button while loading
+              disabled={submitting}
+              className={`px-4 py-2 rounded-lg shadow-lg transition-transform ${
+                submitting
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-valentine-white text-valentine-pink hover:scale-105"
+              }`}
             >
-              {loading ? "Submitting..." : "Send to Crush"} <FaHeart className="inline-block ml-2" />
+              {submitting ? "Submitting..." : "Send to Crush"} <FaHeart className="inline-block ml-2" />
             </button>
           </div>
         </form>
