@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Head from "next/head";
 import confetti from "canvas-confetti";
 import { toast, ToastContainer } from "react-toastify";
@@ -9,6 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function Respond() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id;
   const [response, setResponse] = useState<"yes" | "no" | null>(null);
   const [buttonsVisible, setButtonsVisible] = useState(true);
@@ -21,7 +22,8 @@ export default function Respond() {
   } | null>(null);
   const [noButtonStyle, setNoButtonStyle] = useState({});
   const [moving, setMoving] = useState(false);
-  const [speed, setSpeed] = useState(1000); // Initial movement speed
+  const [speed, setSpeed] = useState(1000);
+  const [noButtonText, setNoButtonText] = useState("No 😢");
 
   useEffect(() => {
     const fetchFormData = async () => {
@@ -32,7 +34,12 @@ export default function Respond() {
         const result = await response.json();
 
         if (result.success) {
-          setFormData(result.data);
+          if (result.data.status === "expired") {
+            alert("This link has expired.");
+            router.push("/");
+          } else {
+            setFormData(result.data);
+          }
         } else {
           console.error("Failed to fetch form data:", result.message);
         }
@@ -62,21 +69,41 @@ export default function Respond() {
     return () => clearInterval(interval);
   }, [moving, speed]);
 
+  const handleExpireLink = async () => {
+    try {
+      await fetch(
+        `https://crushu-back.onrender.com/api/crush/expire-link/${id}`,
+        { method: "POST" }
+      );
+    } catch (error) {
+      console.error("Error expiring link:", error);
+    }
+  };
+
+  const noButtonTexts = [
+    "No 😢",
+    "Really? 🥺",
+    "Think again! 🤨",
+    "Last chance! 💔",
+    "Okay... 💀",
+  ];
+
   const handleNoClick = () => {
     if (noClickCount === 0) {
-      toast.warning("Pleass think and try again 🤔");
-      setMoving(true); // Start moving on first click
+      toast.warning("Please think and try again 🤔");
+      setMoving(true);
     } else if (noClickCount === 1) {
       toast.warning("Are you sure? 🤔");
-      setSpeed(500); // Increase speed
+      setSpeed(500);
     } else if (noClickCount === 2) {
       toast.warning("This is the last chance 💔");
-      setSpeed(200); // Move even faster
+      setSpeed(200);
     } else {
       toast.error("Oh no! 💔");
       setResponse("no");
       setButtonsVisible(false);
       setMoving(false);
+      handleExpireLink();
     }
 
     setNoClickCount((prev) => prev + 1);
@@ -106,9 +133,9 @@ export default function Respond() {
         );
 
         const result = await emailResponse.json();
-
         if (result.success) {
           toast.success("Email sent successfully! 📧");
+          handleExpireLink();
         } else {
           toast.error("Failed to send email: " + result.message);
         }
@@ -124,7 +151,10 @@ export default function Respond() {
     <div className="min-h-screen bg-gradient-to-br from-valentine-pink to-valentine-light-pink flex flex-col items-center justify-center p-4 relative overflow-hidden">
       <Head>
         <title>Respond 💌 - Crushu</title>
-        <meta name="description" content="Respond to your crush’s question on Crushu." />
+        <meta
+          name="description"
+          content="Respond to your crush’s question on Crushu."
+        />
       </Head>
 
       <ToastContainer />
@@ -147,9 +177,9 @@ export default function Respond() {
           <button
             onClick={handleNoClick}
             style={noButtonStyle}
-            className={`bg-valentine-red text-valentine-white px-6 py-3 rounded-lg shadow-lg absolute transition-all transform-gpu`}
+            className="bg-valentine-red text-valentine-white px-6 py-3 rounded-lg shadow-lg absolute transition-all transform-gpu"
           >
-            No 😢
+            {noButtonTexts[Math.min(noClickCount, noButtonTexts.length - 1)]}
           </button>
         )}
 
