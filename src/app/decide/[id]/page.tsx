@@ -23,7 +23,6 @@ export default function Respond() {
   const [noButtonStyle, setNoButtonStyle] = useState({});
   const [moving, setMoving] = useState(false);
   const [speed, setSpeed] = useState(1000);
-  const [noButtonText, setNoButtonText] = useState("No 😢");
 
   useEffect(() => {
     const fetchFormData = async () => {
